@@ -5,8 +5,6 @@ import win32process
 import datetime
 import json
 
-current_datetime = datetime.datetime.now()
-
 def load_data(filename):
     try:
         with open(filename, 'r') as f:
@@ -18,17 +16,28 @@ def load_data(filename):
         }
     return data
 
+def save_data(filename, data):
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=1)
+
 def get_active_window_process():
     if win32gui.GetForegroundWindow() == 0:
         return None, None
     _, pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
     return psutil.Process(pid), win32gui.GetForegroundWindow()
 
-def track_active_process(interval=1):
+def track_active_process(interval, filename):
+    data = load_data(filename)
     duration = 0
     last_pid = None
     last_session_id = 0
     while True:
+        current_datetime = datetime.datetime.now()
+        year = current_datetime.strftime('%Y')
+        month = current_datetime.strftime('%m')
+        day = current_datetime.strftime('%d')
+        hour = current_datetime.strftime('%H')
+
         active_process, hwnd = get_active_window_process()
         if not active_process:
             time.sleep(interval)
@@ -44,18 +53,35 @@ def track_active_process(interval=1):
         
         if current_pid != last_pid:
             if (duration != 0):
+                if year not in data["time_track"]:
+                    data["time_track"][year] = {}
+                if month not in data["time_track"][year]:
+                    data["time_track"][year][month] = {}
+                if day not in data["time_track"][year][month]:
+                    data["time_track"][year][month][day] = {}
+                if hour not in data["time_track"][year][month][day]:
+                    data["time_track"][year][month][day][hour] = {}
+                data["time_track"][year][month][day][hour][last_session_id] = {
+                    "timestamp": last_start_time.isoformat(),
+                    "duration": duration,
+                    "appname": last_process.name()
+                }
+                save_data(filename, data)
+
                 print(f"Duration: {duration} seconds")
                 duration = 0
             last_session_id+=1
             print(f"Session number {last_session_id}")
             print(f"Active process: {active_process.name()} (PID: {current_pid})")
-            print(f"Year: {current_datetime.strftime('%Y')}")
-            print(f"Month: {current_datetime.strftime('%m')}")
-            print(f"Day: {current_datetime.strftime('%d')}")
-            print(f"Hour: {current_datetime.strftime('%H')}")
+            print(f"Year: {year}")
+            print(f"Month: {month}")
+            print(f"Day: {day}")
+            print(f"Hour: {hour}")
 
             last_pid = current_pid
+            last_process = active_process
+            last_start_time = current_datetime
         duration += interval
         time.sleep(interval)
 
-track_active_process()
+track_active_process(1, 'track.json')
