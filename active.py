@@ -3,8 +3,20 @@ import psutil
 import win32gui
 import win32process
 import datetime
+import json
 
 current_datetime = datetime.datetime.now()
+
+def load_data(filename):
+    try:
+        with open(filename, 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {
+            "time_track": {},
+            "data_track": {}
+        }
+    return data
 
 def get_active_window_process():
     if win32gui.GetForegroundWindow() == 0:
@@ -15,6 +27,7 @@ def get_active_window_process():
 def track_active_process(interval=1):
     duration = 0
     last_pid = None
+    last_session_id = 0
     while True:
         active_process, hwnd = get_active_window_process()
         if not active_process:
@@ -33,7 +46,8 @@ def track_active_process(interval=1):
             if (duration != 0):
                 print(f"Duration: {duration} seconds")
                 duration = 0
-
+            last_session_id+=1
+            print(f"Session number {last_session_id}")
             print(f"Active process: {active_process.name()} (PID: {current_pid})")
             print(f"Year: {current_datetime.strftime('%Y')}")
             print(f"Month: {current_datetime.strftime('%m')}")
@@ -41,7 +55,7 @@ def track_active_process(interval=1):
             print(f"Hour: {current_datetime.strftime('%H')}")
 
             last_pid = current_pid
-        duration += 1
+        duration += interval
         time.sleep(interval)
 
 track_active_process()
