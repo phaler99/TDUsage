@@ -20,6 +20,18 @@ def save_data(filename, data):
     with open(filename, 'w') as f:
         json.dump(data, f, indent=1)
 
+def save_time(data, year, month, day, hour, last_session_id, last_start_time, duration, last_process):
+    current_data = data["time_track"]
+    for key in [year, month, day, hour]:
+        if key not in current_data:
+            current_data[key] = {}
+        current_data = current_data[key]
+    current_data[last_session_id] = {
+        "timestamp": last_start_time.isoformat(),
+        "duration": duration,
+        "appname": last_process.name()
+    }
+
 def get_active_window_process():
     if win32gui.GetForegroundWindow() == 0:
         return None, None
@@ -53,19 +65,7 @@ def track_active_process(interval, filename):
         
         if current_pid != last_pid:
             if (duration != 0):
-                if year not in data["time_track"]:
-                    data["time_track"][year] = {}
-                if month not in data["time_track"][year]:
-                    data["time_track"][year][month] = {}
-                if day not in data["time_track"][year][month]:
-                    data["time_track"][year][month][day] = {}
-                if hour not in data["time_track"][year][month][day]:
-                    data["time_track"][year][month][day][hour] = {}
-                data["time_track"][year][month][day][hour][last_session_id] = {
-                    "timestamp": last_start_time.isoformat(),
-                    "duration": duration,
-                    "appname": last_process.name()
-                }
+                save_time(data, year, month, day, hour, last_session_id, last_start_time, duration, last_process)
                 save_data(filename, data)
 
                 print(f"Duration: {duration} seconds")
@@ -83,5 +83,3 @@ def track_active_process(interval, filename):
             last_start_time = current_datetime
         duration += interval
         time.sleep(interval)
-
-track_active_process(1, 'track.json')
