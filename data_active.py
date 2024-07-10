@@ -41,6 +41,10 @@ def packet_callback(packet):
             now = datetime.now()
             year, month, day, hour = now.year, now.month, now.day, now.hour
 
+            # Initialize nested dictionaries if not present
+            if process_name not in data['data_track'][year][month][day][hour]:
+                data['data_track'][year][month][day][hour][process_name] = {'sent': 0, 'received': 0}
+
             # Ensure nested dictionaries exist and update data
             if packet[IP].src in interface_addresses.values():
                 data['data_track'][year][month][day][hour][process_name]['sent'] += len(packet)
