@@ -27,9 +27,12 @@ def packet_callback(packet):
         packet_pid = None
 
         for conn in connections:
-            if conn.pid and hasattr(conn.laddr, 'ip') and hasattr(conn.laddr, 'port'):
-                if (conn.laddr.ip == packet[IP].src and conn.laddr.port == packet[IP].sport) or \
-                   (conn.raddr.ip == packet[IP].dst and conn.raddr.port == packet[IP].dport):
+            if conn.pid and isinstance(conn.laddr, tuple) and isinstance(conn.raddr, tuple):
+                laddr_ip, laddr_port = conn.laddr
+                raddr_ip, raddr_port = conn.raddr if conn.raddr else (None, None)
+
+                if (laddr_ip == packet[IP].src and laddr_port == packet[IP].sport) or \
+                   (raddr_ip == packet[IP].dst and raddr_port == packet[IP].dport):
                     packet_pid = conn.pid
                     break
 
