@@ -2,6 +2,7 @@ import psutil
 from datetime import datetime
 from scapy.all import sniff, IP
 from collections import defaultdict
+import time
 
 # Initialize nested defaultdict
 data = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {'sent': 0, 'received': 0})))))
@@ -56,5 +57,16 @@ def monitor_network_usage():
     sniff(prn=packet_callback, store=0)
 
 if __name__ == "__main__":
-    monitor_network_usage()
-    print(data)
+    # Start sniffing in a separate thread
+    import threading
+    sniff_thread = threading.Thread(target=monitor_network_usage)
+    sniff_thread.daemon = True
+    sniff_thread.start()
+
+    try:
+        while True:
+            time.sleep(10)  # Adjust the sleep interval as needed
+            print(data)
+    except KeyboardInterrupt:
+        print("Stopping monitoring.")
+        print(data)
