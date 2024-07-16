@@ -15,7 +15,7 @@ def get_network_usage_per_app():
             continue
     return usage
 
-def track_usage(interval=5):
+def track_usage(interval):
     previous_usage = get_network_usage_per_app()
     while True:
         time.sleep(interval)
@@ -31,5 +31,4 @@ def track_usage(interval=5):
         
         previous_usage = current_usage
 
-if __name__ == "__main__":
-    track_usage()
+track_usage(5)
