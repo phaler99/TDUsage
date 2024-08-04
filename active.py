@@ -16,19 +16,19 @@ def load_data(filename):
         }
     return data
 
-def get_highest_session_id(data):
+def get_latest_session_id(data):
     current_datetime = datetime.datetime.now()
     year = current_datetime.strftime('%Y')
     month = current_datetime.strftime('%m')
     day = current_datetime.strftime('%d')
     hour = current_datetime.strftime('%H')
 
-    highest_id = 0
+    latest_id = 0
     hour_data = data["time_track"].get(year, {}).get(month, {}).get(day, {}).get(hour, {})
     for session_id in hour_data.keys():
-        highest_id = max(highest_id, int(session_id))
+        latest_id = max(latest_id, int(session_id))
 
-    return highest_id
+    return latest_id
 
 def save_data(filename, data):
     with open(filename, 'w') as f:
@@ -56,7 +56,7 @@ def track_active_process(interval, filename):
     data = load_data(filename)
     duration = 0
     last_pid = None
-    last_session_id = get_highest_session_id(data)
+    last_session_id = get_latest_session_id(data)
     while True:
         current_datetime = datetime.datetime.now()
         year = current_datetime.strftime('%Y')
