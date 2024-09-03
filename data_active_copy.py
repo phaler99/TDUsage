@@ -4,7 +4,7 @@ import time
 initial_data = {}
 cached_connections = {}
 
-def monitor_network_usage(interval=1, process_refresh_interval=30, processes_per_cycle=10):
+def monitor_network_usage(interval=1, process_refresh_interval=5, processes_per_cycle=10):
     last_refresh_time = 0
     processes = []
     data_sent = 0
@@ -16,7 +16,7 @@ def monitor_network_usage(interval=1, process_refresh_interval=30, processes_per
 
         if current_time - last_refresh_time > process_refresh_interval:
             processes = list(psutil.process_iter(['pid', 'name']))
-            print("REFRESH TIME!!!")
+            print("REFRESH TIME!!!\n")
             last_refresh_time = current_time
             process_index = 0
 
