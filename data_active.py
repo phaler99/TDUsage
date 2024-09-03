@@ -1,34 +1,63 @@
 import psutil
 import time
 
-def get_network_usage_per_app():
-    usage = {}
-    for proc in psutil.process_iter(['pid', 'name', 'io_counters']):
-        try:
-            io_counters = proc.info['io_counters']
-            if io_counters:
-                usage[proc.info['name']] = {
-                    'bytes_sent': io_counters.bytes_sent,
-                    'bytes_recv': io_counters.bytes_recv
-                }
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            continue
-    return usage
+initial_data = {}
+cached_connections = {}
 
-def track_usage(interval):
-    previous_usage = get_network_usage_per_app()
+def monitor_network_usage(interval, process_refresh_interval, processes_per_cycle):
+    last_refresh_time = 0
+    processes = []
+    data_sent = 0
+    data_recv = 0
+    process_index = 0
+
     while True:
-        time.sleep(interval)
-        current_usage = get_network_usage_per_app()
-        
-        for app in current_usage:
-            if app in previous_usage:
-                sent = current_usage[app]['bytes_sent'] - previous_usage[app]['bytes_sent']
-                recv = current_usage[app]['bytes_recv'] - previous_usage[app]['bytes_recv']
-                print(f"{app}: Sent {sent} bytes, Received {recv} bytes")
-            else:
-                print(f"{app}: Sent {current_usage[app]['bytes_sent']} bytes, Received {current_usage[app]['bytes_recv']} bytes")
-        
-        previous_usage = current_usage
+        current_time = time.time()
 
-track_usage(5)
+        if current_time - last_refresh_time > process_refresh_interval:
+            processes = list(psutil.process_iter(['pid', 'name']))
+            print("REFRESH TIME!!!\n")
+            last_refresh_time = current_time
+            process_index = 0
+
+        if processes:
+            for _ in range(processes_per_cycle):
+                proc = processes[process_index]
+                process_index = (process_index + 1) % len(processes)
+
+                try:
+                    if proc.pid in cached_connections:
+                        connections = cached_connections[proc.pid]
+                    else:
+                        connections = proc.net_connections(kind='inet')
+                        cached_connections[proc.pid] = connections
+
+                    if not connections:
+                        continue
+
+                    if proc.pid not in initial_data:
+                        initial_data[proc.pid] = proc.io_counters().write_bytes, proc.io_counters().read_bytes
+
+                    io_counters = proc.io_counters()
+                    current_sent = io_counters.write_bytes
+                    current_recv = io_counters.read_bytes
+
+                    prev_sent, prev_recv = initial_data[proc.pid]
+
+                    if prev_sent != current_sent or prev_recv != current_recv:
+                        data_sent = max(0, current_sent - prev_sent)
+                        data_recv = max(0, current_recv - prev_recv)
+
+                    initial_data[proc.pid] = current_sent, current_recv
+
+                    if data_sent > 0 or data_recv > 0:
+                        output = f"Process {proc.name()} (PID {proc.pid}) sent {data_sent // 1024} KB, received {data_recv // 1024} KB"
+                        print(output)
+
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+
+        time.sleep(interval)
+
+if __name__ == "__main__":
+    monitor_network_usage(1, 5, 10)
