@@ -21,7 +21,13 @@ def monitor_network_usage(interval=1, process_refresh_interval=60):
         
         for proc in processes:
             try:
-                connections = proc.net_connections(kind='inet')
+
+                if proc.pid in cached_connections:
+                    connections = cached_connections[proc.pid]
+                else:
+                    connections = proc.net_connections(kind='inet')
+                    cached_connections[proc.pid] = connections
+                
                 if not connections:
                     continue
 
