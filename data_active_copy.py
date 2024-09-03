@@ -15,6 +15,7 @@ def monitor_network_usage(interval=1, process_refresh_interval=30):
 
         if current_time - last_refresh_time > process_refresh_interval:
             processes = list(psutil.process_iter(['pid', 'name']))
+            print("REFRESH TIME!!!")
             last_refresh_time = current_time
         
         for proc in processes:
