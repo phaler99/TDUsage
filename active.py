@@ -97,4 +97,5 @@ def track_active_process(interval, filename):
             last_start_time = current_datetime
         duration += interval
         time.sleep(interval)
-#commit
+
+track_active_process(1, "data.json")

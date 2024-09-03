@@ -4,7 +4,7 @@ import time
 initial_data = {}
 cached_connections = {}
 
-def monitor_network_usage(interval, process_refresh_interval, processes_per_cycle):
+def track_data_usage(interval, process_refresh_interval, processes_per_cycle):
     last_refresh_time = 0
     processes = []
     data_sent = 0
@@ -60,4 +60,4 @@ def monitor_network_usage(interval, process_refresh_interval, processes_per_cycl
         time.sleep(interval)
 
 if __name__ == "__main__":
-    monitor_network_usage(1, 5, 10)
+    track_data_usage(1, 5, 10)
