@@ -4,11 +4,12 @@ import time
 initial_data = {}
 cached_connections = {}
 
-def monitor_network_usage(interval=1, process_refresh_interval=30):
+def monitor_network_usage(interval=1, process_refresh_interval=30, processes_per_cycle=10):
     last_refresh_time = 0
     processes = []
     data_sent = 0
     data_recv = 0
+    process_index = 0
 
     while True:
         current_time = time.time()
@@ -17,40 +18,44 @@ def monitor_network_usage(interval=1, process_refresh_interval=30):
             processes = list(psutil.process_iter(['pid', 'name']))
             print("REFRESH TIME!!!")
             last_refresh_time = current_time
-        
-        for proc in processes:
-            try:
+            process_index = 0
 
-                if proc.pid in cached_connections:
-                    connections = cached_connections[proc.pid]
-                else:
-                    connections = proc.net_connections(kind='inet')
-                    cached_connections[proc.pid] = connections
-                
-                if not connections:
-                    continue
+        if processes:
+            for _ in range(processes_per_cycle):
+                proc = processes[process_index]
+                process_index = (process_index + 1) % len(processes)
 
-                if proc.pid not in initial_data:
-                    initial_data[proc.pid] = proc.io_counters().write_bytes, proc.io_counters().read_bytes
+                try:
+                    if proc.pid in cached_connections:
+                        connections = cached_connections[proc.pid]
+                    else:
+                        connections = proc.net_connections(kind='inet')
+                        cached_connections[proc.pid] = connections
 
-                io_counters = proc.io_counters()
-                current_sent = io_counters.write_bytes
-                current_recv = io_counters.read_bytes
+                    if not connections:
+                        continue
 
-                prev_sent, prev_recv = initial_data[proc.pid]
+                    if proc.pid not in initial_data:
+                        initial_data[proc.pid] = proc.io_counters().write_bytes, proc.io_counters().read_bytes
 
-                if prev_sent != current_sent or prev_recv != current_recv:
-                    data_sent = max(0, current_sent - prev_sent)
-                    data_recv = max(0, current_recv - prev_recv)
+                    io_counters = proc.io_counters()
+                    current_sent = io_counters.write_bytes
+                    current_recv = io_counters.read_bytes
 
-                initial_data[proc.pid] = current_sent, current_recv
+                    prev_sent, prev_recv = initial_data[proc.pid]
 
-                if data_sent > 0 or data_recv > 0:
-                    output = f"Process {proc.info['name']} (PID {proc.pid}) sent {data_sent // 1024} KB, received {data_recv // 1024} KB"
-                    print(output)
+                    if prev_sent != current_sent or prev_recv != current_recv:
+                        data_sent = max(0, current_sent - prev_sent)
+                        data_recv = max(0, current_recv - prev_recv)
 
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
+                    initial_data[proc.pid] = current_sent, current_recv
+
+                    if data_sent > 0 or data_recv > 0:
+                        output = f"Process {proc.name()} (PID {proc.pid}) sent {data_sent // 1024} KB, received {data_recv // 1024} KB"
+                        print(output)
+
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
 
         time.sleep(interval)
 
