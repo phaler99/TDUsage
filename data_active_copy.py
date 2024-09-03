@@ -3,7 +3,6 @@ import time
 
 initial_data = {}
 cached_connections = {}
-active_pids = set()
 
 def monitor_network_usage(interval=1, process_refresh_interval=30):
     last_refresh_time = 0
@@ -11,10 +10,8 @@ def monitor_network_usage(interval=1, process_refresh_interval=30):
     data_sent = 0
     data_recv = 0
 
-
     while True:
         current_time = time.time()
-        
 
         if current_time - last_refresh_time > process_refresh_interval:
             processes = list(psutil.process_iter(['pid', 'name']))
