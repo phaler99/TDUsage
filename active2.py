@@ -30,7 +30,6 @@ def track_active_process_append(interval, filename, flush_interval):
         "appname": ""
     }
 
-    session_dict = session_template.copy()
     while True:
         current_time = int(time.time())
 
