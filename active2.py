@@ -32,7 +32,7 @@ def track_active_process_append(interval, filename, flush_interval):
 
     session_dict = session_template.copy()
     while True:
-        current_time = time.time()
+        current_time = int(time.time())
 
         active_process, hwnd = get_active_window_process()
         if not active_process:
