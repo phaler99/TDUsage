@@ -5,6 +5,12 @@ import win32process
 import datetime
 import json
 
+session_template = {
+    "timestamp": "",
+    "duration": 0,
+    "appname": ""
+}
+
 def save_time_append(filename, session_data):
     with open(filename, 'a') as f:
         for session in session_data:
@@ -23,6 +29,7 @@ def track_active_process_append(interval, filename, flush_interval):
     session_data = []
     last_flush_time = time.time()
 
+    session_dict = session_template.copy()
     while True:
         current_time = time.time()
 
@@ -33,20 +40,20 @@ def track_active_process_append(interval, filename, flush_interval):
 
         current_pid = active_process.pid
 
-        if active_process.name().lower() == "explorer.exe" and not win32gui.GetWindowText(hwnd).strip():
-            time.sleep(interval)
-            continue
+        if active_process.name().lower() == "explorer.exe":
+            window_title = win32gui.GetWindowText(hwnd).strip()
+            if not window_title:  # Skip if no title
+                time.sleep(interval)
+                continue
 
         if current_pid != last_pid:
             if duration != 0:
-                last_start_datetime = datetime.datetime.fromtimestamp(last_start_time)
+                session_dict["timestamp"] = datetime.datetime.fromtimestamp(last_start_time).isoformat()
+                session_dict["duration"] = duration
+                session_dict["appname"] = last_process.name()
+                session_data.append(session_dict.copy())
 
-                session_data.append({
-                    "timestamp": last_start_datetime.isoformat(),
-                    "duration": duration,
-                    "appname": last_process.name()
-                })
-                print(f"Logged session: {last_process.name()}, Duration: {duration} seconds, Timestamp: {last_start_datetime}")
+                print(f"Logged session: {last_process.name()}, Duration: {duration} seconds, Timestamp: {session_dict["timestamp"]}")
 
             last_pid = current_pid
             last_process = active_process
