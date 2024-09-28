@@ -44,7 +44,7 @@ def track_active_process_append(interval, filename):
         if current_pid != last_pid:
             if duration != 0:
                 save_time_append(filename, last_start_time, duration, last_process.name())
-                print(f"Logged session: {last_process.name()}, Duration: {duration} seconds")
+                print(f"Logged session: {last_process.name()}, Duration: {duration} seconds, Timestamp: {last_start_time}")
 
             last_pid = current_pid
             last_process = active_process
