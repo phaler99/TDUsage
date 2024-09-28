@@ -18,7 +18,8 @@ def save_time_append(filename, session_data):
             f.write('\n')
 
 def get_active_window_process():
-    if win32gui.GetForegroundWindow() == 0:
+    hwnd = win32gui.GetForegroundWindow()
+    if hwnd == 0:
         return None, None
     _, pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
     return psutil.Process(pid), win32gui.GetForegroundWindow()
@@ -27,7 +28,7 @@ def track_active_process_append(interval, filename, flush_interval):
     last_pid = None
     duration = 0
     session_data = []
-    last_flush_time = time.time()
+    last_flush_time = int(time.time())
 
     session_dict = session_template.copy()
     while True:
@@ -42,13 +43,15 @@ def track_active_process_append(interval, filename, flush_interval):
 
         if active_process.name().lower() == "explorer.exe":
             window_title = win32gui.GetWindowText(hwnd).strip()
-            if not window_title:  # Skip if no title
+            if not window_title:
                 time.sleep(interval)
                 continue
 
         if current_pid != last_pid:
             if duration != 0:
-                session_dict["timestamp"] = datetime.datetime.fromtimestamp(last_start_time).isoformat()
+                last_start_datetime = datetime.datetime.fromtimestamp(last_start_time)
+
+                session_dict["timestamp"] = last_start_datetime.isoformat(timespec='seconds')
                 session_dict["duration"] = duration
                 session_dict["appname"] = last_process.name()
                 session_data.append(session_dict.copy())
@@ -60,7 +63,7 @@ def track_active_process_append(interval, filename, flush_interval):
             last_start_time = current_time
             duration = 0
 
-        duration = int(current_time - last_start_time)
+        duration = current_time - last_start_time
 
         if current_time - last_flush_time >= flush_interval:
             if session_data:
