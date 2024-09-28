@@ -5,12 +5,6 @@ import win32process
 import datetime
 import json
 
-session_template = {
-    "timestamp": "",
-    "duration": 0,
-    "appname": ""
-}
-
 def save_time_append(filename, session_data):
     with open(filename, 'a') as f:
         for session in session_data:
@@ -30,6 +24,12 @@ def track_active_process_append(interval, filename, flush_interval):
     session_data = []
     last_flush_time = int(time.time())
 
+    session_dict = {
+        "timestamp": "",
+        "duration": 0,
+        "appname": ""
+    }
+
     session_dict = session_template.copy()
     while True:
         current_time = int(time.time())
@@ -41,7 +41,8 @@ def track_active_process_append(interval, filename, flush_interval):
 
         current_pid = active_process.pid
 
-        if active_process.name().lower() == "explorer.exe":
+        process_name = active_process.name().lower()
+        if process_name == "explorer.exe":
             window_title = win32gui.GetWindowText(hwnd).strip()
             if not window_title:
                 time.sleep(interval)
