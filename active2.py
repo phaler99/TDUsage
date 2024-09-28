@@ -21,8 +21,8 @@ def get_active_window_process():
     hwnd = win32gui.GetForegroundWindow()
     if hwnd == 0:
         return None, None
-    _, pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
-    return psutil.Process(pid), win32gui.GetForegroundWindow()
+    _, pid = win32process.GetWindowThreadProcessId(hwnd)
+    return psutil.Process(pid), hwnd
 
 def track_active_process_append(interval, filename, flush_interval):
     last_pid = None
