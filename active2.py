@@ -26,7 +26,8 @@ def track_active_process_append(interval, filename):
     duration = 0
 
     while True:
-        current_datetime = datetime.datetime.now()
+        current_time = time.time()
+        current_datetime = datetime.datetime.fromtimestamp(current_time)
 
         active_process, hwnd = get_active_window_process()
         if not active_process:
@@ -43,15 +44,16 @@ def track_active_process_append(interval, filename):
 
         if current_pid != last_pid:
             if duration != 0:
-                save_time_append(filename, last_start_time, duration, last_process.name())
-                print(f"Logged session: {last_process.name()}, Duration: {duration} seconds, Timestamp: {last_start_time}")
+                last_start_datetime = datetime.datetime.fromtimestamp(last_start_time)
+                save_time_append(filename, last_start_datetime, duration, last_process.name())
+                print(f"Logged session: {last_process.name()}, Duration: {duration} seconds, Timestamp: {last_start_datetime}")
 
             last_pid = current_pid
             last_process = active_process
             last_start_time = current_datetime
             duration = 0
 
-        duration += interval
+        duration = int(current_time - last_start_time)
         time.sleep(interval)
 
 track_active_process_append(1, "data.json")
