@@ -27,7 +27,6 @@ def track_active_process_append(interval, filename):
 
     while True:
         current_time = time.time()
-        current_datetime = datetime.datetime.fromtimestamp(current_time)
 
         active_process, hwnd = get_active_window_process()
         if not active_process:
@@ -50,7 +49,7 @@ def track_active_process_append(interval, filename):
 
             last_pid = current_pid
             last_process = active_process
-            last_start_time = current_datetime
+            last_start_time = current_time
             duration = 0
 
         duration = int(current_time - last_start_time)
