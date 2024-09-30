@@ -56,7 +56,8 @@ def track_active_process_append(interval, filename, flush_interval):
                 session_dict["appname"] = last_process.name()
                 session_data.append(session_dict.copy())
 
-                print(f"Logged session: {last_process.name()}, Duration: {duration} seconds, Timestamp: {session_dict["timestamp"]}")
+                output = f"Logged session: {last_process.name()}, Duration: {duration} seconds, Timestamp: {session_dict["timestamp"]}"
+                print(output)
 
             last_pid = current_pid
             last_process = active_process
