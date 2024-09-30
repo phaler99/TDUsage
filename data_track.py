@@ -35,7 +35,7 @@ def track_data_usage(interval, process_refresh_interval, processes_per_cycle, fi
                     if proc.pid in cached_connections:
                         connections = cached_connections[proc.pid]
                     else:
-                        connections = proc.net_connections(kind='inet')
+                        connections = proc.net_connections(kind='all')
                         cached_connections[proc.pid] = connections
 
                     if not connections:
@@ -75,4 +75,4 @@ def track_data_usage(interval, process_refresh_interval, processes_per_cycle, fi
         time.sleep(interval)
 
 if __name__ == "__main__":
-    track_data_usage(1, 5, 10, "data_track.json")
+    track_data_usage(1, 5, 25, "data_track.json")
