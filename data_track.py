@@ -1,10 +1,16 @@
 import psutil
 import time
+import json
 
 initial_data = {}
 cached_connections = {}
 
-def track_data_usage(interval, process_refresh_interval, processes_per_cycle):
+def append_to_json(filename, data):
+    with open(filename, 'a') as file:
+        json.dump(data, file)
+        file.write('\n')
+
+def track_data_usage(interval, process_refresh_interval, processes_per_cycle, filename):
     last_refresh_time = 0
     processes = []
     data_sent = 0
@@ -51,6 +57,15 @@ def track_data_usage(interval, process_refresh_interval, processes_per_cycle):
                     initial_data[proc.pid] = current_sent, current_recv
 
                     if data_sent > 0 or data_recv > 0:
+                        data_entry = {
+                            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(current_time)),
+                            'process_name': proc.name(),
+                            'pid': proc.pid,
+                            'data_sent_kb': data_sent // 1024,
+                            'data_recv_kb': data_recv // 1024
+                        }
+                        append_to_json(filename, data_entry)
+
                         output = f"Process {proc.name()} (PID {proc.pid}) sent {data_sent // 1024} KB, received {data_recv // 1024} KB"
                         print(output)
 
@@ -60,4 +75,4 @@ def track_data_usage(interval, process_refresh_interval, processes_per_cycle):
         time.sleep(interval)
 
 if __name__ == "__main__":
-    track_data_usage(1, 5, 10)
+    track_data_usage(1, 5, 10, "data_track.json")
