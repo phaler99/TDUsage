@@ -74,4 +74,4 @@ def track_active_process_append(interval, filename, flush_interval):
 
         time.sleep(interval)
 
-track_active_process_append(1, "time_track.json", 5)
+track_active_process_append(1, "time_track.json", 10)
