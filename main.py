@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon, QAction
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QEvent
+import subprocess
 
 class color:
     background = "#E1F7F5"
@@ -13,6 +14,13 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.MainWindow()
+        self.run_track()
+
+    def run_track(self):
+        try:
+            subprocess.Popen([sys.executable, "time_track.py"])
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def MainWindow(self):
         #window settings
