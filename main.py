@@ -16,7 +16,7 @@ class App(QMainWindow):
 
     def MainWindow(self):
         #window settings
-        self.setWindowTitle("TDUsage")
+        self.setWindowTitle("Tusage")
         self.setWindowIcon(QIcon('icon.png'))
         self.setMinimumSize(500, 350)
         self.setStyleSheet(f"background-color: {color.background};")
@@ -24,7 +24,7 @@ class App(QMainWindow):
         #app in tray
         self.tray_icon = QSystemTrayIcon(QIcon('icon.png'), self)
         self.tray_icon.activated.connect(self.on_tray_icon_clicked)
-        self.tray_icon.setToolTip('TDUsage')
+        self.tray_icon.setToolTip('Tusage')
 
         #context menu of app in tray
         self.tray_menu = QMenu(self)
